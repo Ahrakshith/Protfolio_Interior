@@ -26,7 +26,7 @@ document.querySelectorAll(".fade-section").forEach(el => fadeObserver.observe(el
 
 
 /* =======================================================
-   PINTEREST GALLERY — JSON BASED
+   JSON-BASED PINTEREST GALLERY — UNLIMITED IMAGES
 ======================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -43,14 +43,14 @@ async function loadCategory(category) {
   const container = document.getElementById(`${category}Gallery`);
   if (!container) return;
 
-  const jsonURL = `data/${category}.json`;
+  const jsonURL = `/data/${category}.json`;
 
   try {
     const res = await fetch(jsonURL);
-    const files = await res.json(); // Array of filenames
+    const files = await res.json();  // Array of filenames
 
     files.forEach(name => {
-      const src = `projects/${category}/${name}`;
+      const src = `/projects/${category}/${name}`;
       renderImage(container, src);
     });
 
@@ -60,16 +60,15 @@ async function loadCategory(category) {
 }
 
 
-/* Load image into Pinterest grid */
+/* Add image to Masonry grid */
 function renderImage(container, src) {
   const img = document.createElement("img");
   img.loading = "lazy";
   img.src = src;
-
   img.onclick = () => openFullscreen(src);
-
   container.appendChild(img);
 }
+
 
 
 /* =======================================================
