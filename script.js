@@ -24,25 +24,18 @@ const fadeObserver = new IntersectionObserver(
 document.querySelectorAll(".fade-section").forEach(el => fadeObserver.observe(el));
 
 
+
 /* =======================================================
-   AUTO JSON → PINTEREST GALLERY (CLEAN URL SAFE)
+   CLEAN URL → CATEGORY DETECTION
 ======================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
   let page = window.location.pathname.split("/").pop();
-
   console.log("📄 Raw Page:", page);
 
-  // When Vercel cleanUrls is enabled, `.html` is removed:
-  // /kitchen.html → /kitchen
-  if (page === "") {
-    // example: homepage (ignore)
-    page = "index";
-  }
+  if (!page || page === "") page = "index";
 
-  // Remove .html if exists
   page = page.replace(".html", "");
-
   console.log("📄 Normalized Page:", page);
 
   const categoryMap = {
@@ -60,83 +53,112 @@ document.addEventListener("DOMContentLoaded", () => {
   const category = categoryMap[page];
   console.log("📂 Mapped Category:", category);
 
-  if (!category) {
-    console.warn("⚠ No category matched for:", page);
-    return;
-  }
-
+  if (!category) return;
   loadCategory(category);
 });
 
 
+
 /* =======================================================
-   LOAD CATEGORY IMAGES FROM JSON
+   FAST IMAGE LOADER (PRELOAD FIRST 6, LAZY REST)
 ======================================================= */
+
+function preloadImage(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.src = url;
+    img.onload = () => resolve(url);
+    img.onerror = () => reject(url);
+  });
+}
+
+
 
 async function loadCategory(category) {
   const containerId = `${category}Gallery`;
-  console.log("🔎 Searching container:", containerId);
-
   const container = document.getElementById(containerId);
-  console.log("📌 Container Found:", container);
 
-  if (!container) {
-    console.error("❌ ERROR: Container not found:", containerId);
-    return;
-  }
+  console.log("📌 Container:", containerId, container);
+
+  if (!container) return;
 
   const jsonURL = `/data/${category}.json`;
-  console.log("📥 Fetching JSON from:", jsonURL);
+  console.log("📥 Fetch JSON:", jsonURL);
 
   try {
     const res = await fetch(jsonURL);
-    console.log("📦 JSON Response Status:", res.status);
-
     const files = await res.json();
-    console.log("📁 JSON Content:", files);
 
-    if (!Array.isArray(files)) {
-      console.error("❌ JSON format invalid! Expected an array.");
-      return;
-    }
+    console.log("📁 JSON Files:", files);
 
-    if (files.length === 0) {
-      console.warn("⚠ JSON loaded but EMPTY. No images found.");
-    }
+    if (!Array.isArray(files)) return;
 
-    // Load each image
-    files.forEach((filename) => {
-      const src = `/projects/${category}/${filename}`;
-      console.log("🖼 Creating Image Element for:", src);
-      addImage(container, src);
+    const imageUrls = files.map(f => `/projects/${category}/${f}`);
+
+    // 🔥 PRELOAD ONLY FIRST 6 IMAGES
+    const firstBatch = imageUrls.slice(0, 6);
+    console.log("⏳ Preloading first 6:", firstBatch);
+
+    await Promise.all(firstBatch.map(preloadImage));
+
+    // Render first 6 instantly
+    firstBatch.forEach(src => addImage(container, src));
+
+    // 🔥 Lazy-load the remaining ones using IntersectionObserver
+    const remaining = imageUrls.slice(6);
+
+    remaining.forEach(src => {
+      const img = document.createElement("img");
+      img.dataset.src = src; // not loading yet
+      img.loading = "lazy";
+      img.onclick = () => openFullscreen(src);
+      container.appendChild(img);
     });
 
+    observeLazyImages();
+
   } catch (err) {
-    console.error("❌ JSON Fetch Error:", err);
+    console.error("❌ JSON Load Error:", err);
   }
 }
 
 
+
 /* =======================================================
-   ADD IMAGE TO PAGE
+   LAZY LOADING (Loads images only when visible)
+======================================================= */
+
+function observeLazyImages() {
+  const lazyImgs = document.querySelectorAll("img[data-src]");
+
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        img.src = img.dataset.src;
+        img.removeAttribute("data-src");
+        obs.unobserve(img);
+      }
+    });
+  });
+
+  lazyImgs.forEach(img => obs.observe(img));
+}
+
+
+
+/* =======================================================
+   ADD IMAGE TO DOM
 ======================================================= */
 
 function addImage(container, src) {
-  console.log("➡️ addImage() for:", src);
-
   const img = document.createElement("img");
   img.src = src;
-
-  img.onload = () => console.log("✔ Image Loaded:", src);
-  img.onerror = () => console.error("❌ Failed to Load:", src);
-
-  img.loading = "lazy";
+  img.loading = "eager"; // safe because preloaded
   img.onclick = () => openFullscreen(src);
-
   container.appendChild(img);
-
-  console.log("📌 Image added to DOM:", src);
 }
+
 
 
 /* =======================================================
@@ -144,8 +166,6 @@ function addImage(container, src) {
 ======================================================= */
 
 function openFullscreen(src) {
-  console.log("🔍 Opening fullscreen for:", src);
-
   const modal = document.getElementById("fullscreenModal");
   const modalImg = document.getElementById("fullscreenImg");
 
