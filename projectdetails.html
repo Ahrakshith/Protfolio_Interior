@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Project — Rashmi A H</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <header class="navbar" id="navbar">
+    <a href="index.html" class="brand">RASHMI A H</a>
+    <nav>
+      <a href="index.html#home">Work</a>
+      <a href="index.html#studio">Studio</a>
+      <a href="index.html#about">About</a>
+    </nav>
+  </header>
+
+  <!-- PROJECT HEADER -->
+<section class="page-hero hero-small fade-section">
+  <div class="project-header-row">
+    <div class="project-title-block">
+      <h1 id="projectTitle">Project</h1>
+      <p id="projectSubtitle"></p>
+    </div>
+
+    <button class="btn-light back-btn-right" id="backButton">← Back</button>
+  </div>
+</section>
+
+
+  <!-- PROJECT VIEWER -->
+  <main class="container project-page fade-section">
+
+    <section class="project-gallery">
+
+      <!-- SLIDER -->
+      <div class="slider" id="slider">
+        <div class="slides" id="slides"></div>
+
+        <button class="slide-arrow prev" onclick="prevSlide()">‹</button>
+        <button class="slide-arrow next" onclick="nextSlide()">›</button>
+      </div>
+
+      <!-- THUMBNAILS -->
+      <div class="thumbs" id="thumbs"></div>
+
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>© 2025 Rashmi A H — Interior Design Portfolio</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

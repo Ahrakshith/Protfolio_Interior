@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Rashmi A H | Interior Design Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <header class="navbar" id="navbar">
+      <a href="#home" class="brand">RASHMI A H</a>
+      <nav>
+        <a href="#home">Work</a>
+        <a href="#studio">Studio</a>
+        <a href="#about">About</a>
+      </nav>
+    </header>
+
+    <!-- HERO -->
+    <section id="home" class="hero fade-section">
+      <div class="hero-content">
+        <h1>Creating Timeless Interiors</h1>
+        <p>Elegant spaces that blend warmth, balance, and function.</p>
+        <button onclick="scrollToSection('about')" class="btn-light">Explore My Work →</button>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="about fade-section">
+      <div class="container about-grid">
+        <div class="about-img placeholder"></div>
+        <div class="about-text">
+          <h2>About Me</h2>
+          <p>Rashmi A H is a Bangalore-based interior designer with over eight years of experience in crafting residential and boutique commercial interiors.</p>
+          <p>Her philosophy lies in blending timeless aesthetics with functionality — ensuring every space feels grounded, elegant, and truly personal.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- STUDIO -->
+    <section id="studio" class="studio fade-section">
+      <div class="container">
+        <h2>The Studio</h2>
+        <p>Explore curated categories of design work.</p>
+
+        <div class="studio-vertical">
+          <div class="studio-block" onclick="location.href='kitchen.html'"><h3>Kitchen Designs</h3></div>
+          <div class="studio-block" onclick="location.href='living.html'"><h3>Living Spaces</h3></div>
+          <div class="studio-block" onclick="location.href='bedroom.html'"><h3>Bedrooms</h3></div>
+          <div class="studio-block" onclick="location.href='dining.html'"><h3>Dining Areas</h3></div>
+          <div class="studio-block" onclick="location.href='bathroom.html'"><h3>Bathrooms</h3></div>
+          <div class="studio-block" onclick="location.href='office.html'"><h3>Office Interiors</h3></div>
+          <div class="studio-block" onclick="location.href='outdoor.html'"><h3>Outdoor Spaces</h3></div>
+          <div class="studio-block" onclick="location.href='commercial.html'"><h3>Commercial Projects</h3></div>
+          <div class="studio-block" onclick="location.href='furniture.html'"><h3>Custom Furniture</h3></div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>© 2025 Rashmi A H — Interior Design Portfolio</p>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>

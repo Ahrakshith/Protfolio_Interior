@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kitchen Designs — Rashmi A H</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    /* Masonry Pinterest Grid */
+    .masonry {
+      column-count: 3;
+      column-gap: 20px;
+      padding: 20px;
+    }
+
+    .masonry img {
+      width: 100%;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform .25s ease;
+    }
+
+    .masonry img:hover {
+      transform: scale(1.02);
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) { .masonry { column-count: 2; } }
+    @media (max-width: 600px) { .masonry { column-count: 1; } }
+
+    /* Fullscreen Modal */
+    #fullscreenModal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    #fullscreenModal img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <header class="navbar" id="navbar">
+    <a href="index.html" class="brand">RASHMI A H</a>
+    <nav>
+      <a href="index.html#home">Work</a>
+      <a href="index.html#studio">Studio</a>
+      <a href="index.html#about">About</a>
+    </nav>
+  </header>
+
+  <!-- HEADER -->
+  <section class="page-hero hero-small fade-section">
+    <div class="hero-content">
+      <h1>Kitchen Designs</h1>
+      <p>Browse through all kitchen design images.</p>
+    </div>
+  </section>
+
+  <!-- GALLERY -->
+  <main class="container fade-section">
+    <div id="kitchenGallery" class="masonry"></div>
+  </main>
+
+  <!-- FULLSCREEN VIEWER -->
+  <div id="fullscreenModal" onclick="this.style.display='none'">
+    <img id="fullscreenImg" />
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
