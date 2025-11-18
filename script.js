@@ -1,5 +1,5 @@
 /* ============================
-   NAVBAR + FADE (UNCHANGED)
+   NAVBAR + FADE
 ============================ */
 
 function scrollToSection(id) {
@@ -26,11 +26,12 @@ document.querySelectorAll(".fade-section").forEach(el => fadeObserver.observe(el
 
 
 /* =======================================================
-   AUTO JSON → PINTEREST GALLERY
+   AUTO JSON → PINTEREST GALLERY (WITH DEBUG LOGGING)
 ======================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
   const page = window.location.pathname.split("/").pop();
+  console.log("📄 Current Page:", page);
 
   const categoryMap = {
     "kitchen.html": "kitchen",
@@ -45,39 +46,74 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const category = categoryMap[page];
-  if (!category) return;
+  console.log("📂 Mapped Category:", category);
+
+  if (!category) {
+    console.warn("⚠ No category found for:", page);
+    return;
+  }
 
   loadCategory(category);
 });
 
 
 async function loadCategory(category) {
-  const container = document.getElementById(`${category}Gallery`);
-  if (!container) return;
+  const containerId = `${category}Gallery`;
+  console.log("🔎 Searching container:", containerId);
+
+  const container = document.getElementById(containerId);
+  console.log("📌 Container Found:", container);
+
+  if (!container) {
+    console.error("❌ ERROR: Container not found:", containerId);
+    return;
+  }
 
   const jsonURL = `/data/${category}.json`;
+  console.log("📥 Fetching JSON from:", jsonURL);
 
   try {
     const res = await fetch(jsonURL);
-    const files = await res.json();
+    console.log("📦 JSON Response Status:", res.status);
 
-    files.forEach((file) => {
-      const src = `/projects/${category}/${file}`;
+    const files = await res.json();
+    console.log("📁 JSON Content:", files);
+
+    if (!Array.isArray(files)) {
+      console.error("❌ JSON format invalid! Expected an array.");
+      return;
+    }
+
+    if (files.length === 0) {
+      console.warn("⚠ JSON loaded but EMPTY. No images found.");
+    }
+
+    files.forEach((filename) => {
+      const src = `/projects/${category}/${filename}`;
+      console.log("🖼 Creating Image Element for:", src);
       addImage(container, src);
     });
 
   } catch (err) {
-    console.error(`❌ Could not load ${jsonURL}`, err);
+    console.error("❌ JSON Fetch Error:", err);
   }
 }
 
 
 function addImage(container, src) {
+  console.log("➡️ addImage() called for:", src);
+
   const img = document.createElement("img");
   img.src = src;
+
+  img.onload = () => console.log("✔ Image Loaded:", src);
+  img.onerror = () => console.error("❌ Failed to Load:", src);
+
   img.loading = "lazy";
   img.onclick = () => openFullscreen(src);
+
   container.appendChild(img);
+  console.log("📌 Appended to DOM:", src);
 }
 
 
@@ -87,6 +123,8 @@ function addImage(container, src) {
 ======================================================= */
 
 function openFullscreen(src) {
+  console.log("🔍 Opening fullscreen for:", src);
+
   const modal = document.getElementById("fullscreenModal");
   const modalImg = document.getElementById("fullscreenImg");
 
