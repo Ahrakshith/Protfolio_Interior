@@ -1,52 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Living Spaces — Rashmi A H</title>
-<link rel="stylesheet" href="style.css"/>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Living Room Designs — Rashmi A H</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+
+  <style>
+    /* Masonry Pinterest Grid */
+    .masonry {
+      column-count: 3;
+      column-gap: 20px;
+      padding: 20px;
+    }
+
+    .masonry img {
+      width: 100%;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform .25s ease;
+    }
+
+    .masonry img:hover {
+      transform: scale(1.02);
+    }
+
+    @media (max-width: 900px) { .masonry { column-count: 2; } }
+    @media (max-width: 600px) { .masonry { column-count: 1; } }
+
+    /* Fullscreen Modal */
+    #fullscreenModal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    #fullscreenModal img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 12px;
+    }
+  </style>
 </head>
 
 <body>
-<header class="navbar" id="navbar">
-  <a href="index.html" class="brand">RASHMI A H</a>
-  <nav>
-    <a href="index.html#home">Work</a>
-    <a href="index.html#studio">Studio</a>
-    <a href="index.html#about">About</a>
-  </nav>
-</header>
+  <!-- NAVBAR -->
+  <header class="navbar" id="navbar">
+    <a href="/index.html" class="brand">RASHMI A H</a>
+    <nav>
+      <a href="/index.html#home">Work</a>
+      <a href="/index.html#studio">Studio</a>
+      <a href="/index.html#about">About</a>
+    </nav>
+  </header>
 
-<section class="page-hero hero-small fade-section">
-  <div class="hero-content">
-    <h1>Living Spaces</h1>
-    <p>Select a project to continue.</p>
+  <!-- HEADER -->
+  <section class="page-hero hero-small fade-section">
+    <div class="hero-content">
+      <h1>Living Room Designs</h1>
+      <p>Explore curated living room interior photography.</p>
+    </div>
+  </section>
+
+  <!-- GALLERY -->
+  <main class="container fade-section">
+    <div id="livingGallery" class="masonry"></div>
+  </main>
+
+  <!-- FULLSCREEN VIEWER -->
+  <div id="fullscreenModal" onclick="this.style.display='none'">
+    <img id="fullscreenImg" />
   </div>
-</section>
 
-<main class="container fade-section">
-<section class="projects-grid">
-
-<article class="project-card" onclick="location.href='projectdetails.html?category=living&project=AnnathKrishna'"><div class="project-thumb placeholder"></div><h3>Annath Krishna</h3></article>
-<article class="project-card" onclick="location.href='projectdetails.html?category=living&project=Aristo'"><div class="project-thumb placeholder"></div><h3>Aristo</h3></article>
-<article class="project-card" onclick="location.href='projectdetails.html?category=living&project=Arun'"><div class="project-thumb placeholder"></div><h3>Arun</h3></article>
-<article class="project-card" onclick="location.href='projectdetails.html?category=living&project=Baswaraj'"><div class="project-thumb placeholder"></div><h3>Baswaraj</h3></article>
-<article class="project-card" onclick="location.href='projectdetails.html?category=living&project=JRC'"><div class="project-thumb placeholder"></div><h3>JRC</h3></article>
-<article class="project-card" onclick="location.href='projectdetails.html?category=living&project=Madhuri'"><div class="project-thumb placeholder"></div><h3>Madhuri</h3></article>
-<article class="project-card" onclick="location.href='projectdetails.html?category=living&project=Manjunath'"><div class="project-thumb placeholder"></div><h3>Manjunath</h3></article>
-<article class="project-card" onclick="location.href='projectdetails.html?category=living&project=Prashanth'"><div class="project-thumb placeholder"></div><h3>Prashanth</h3></article>
-<article class="project-card" onclick="location.href='projectdetails.html?category=living&project=Rajesh'"><div class="project-thumb placeholder"></div><h3>Rajesh</h3></article>
-<article class="project-card" onclick="location.href='projectdetails.html?category=living&project=ShobanaReddy'"><div class="project-thumb placeholder"></div><h3>Shobana Reddy</h3></article>
-<article class="project-card" onclick="location.href='projectdetails.html?category=living&project=Srinivas'"><div class="project-thumb placeholder"></div><h3>Srinivas</h3></article>
-<article class="project-card" onclick="location.href='projectdetails.html?category=living&project=Venu'"><div class="project-thumb placeholder"></div><h3>Venu</h3></article>
-
-</section>
-</main>
-
-<footer class="footer">
-<p>© 2025 Rashmi A H — Interior Design Portfolio</p>
-</footer>
-<script src="script.js"></script>
+  <script src="/script.js"></script>
 </body>
 </html>
