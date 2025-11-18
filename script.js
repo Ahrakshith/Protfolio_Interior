@@ -26,13 +26,12 @@ document.querySelectorAll(".fade-section").forEach(el => fadeObserver.observe(el
 
 
 /* =======================================================
-   JSON-BASED PINTEREST GALLERY — AUTO FOR ALL CATEGORIES
+   AUTO JSON → PINTEREST GALLERY
 ======================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
-  const page = window.location.pathname;
+  const page = window.location.pathname.split("/").pop();
 
-  // Page → Category mapping
   const categoryMap = {
     "kitchen.html": "kitchen",
     "bedroom.html": "bedroom",
@@ -45,17 +44,13 @@ document.addEventListener("DOMContentLoaded", () => {
     "furniture.html": "furniture"
   };
 
-  // Detect current page
-  for (const file in categoryMap) {
-    if (page.includes(file)) {
-      loadCategory(categoryMap[file]);
-      break;
-    }
-  }
+  const category = categoryMap[page];
+  if (!category) return;
+
+  loadCategory(category);
 });
 
 
-/* Load images from auto-generated JSON */
 async function loadCategory(category) {
   const container = document.getElementById(`${category}Gallery`);
   if (!container) return;
@@ -64,33 +59,31 @@ async function loadCategory(category) {
 
   try {
     const res = await fetch(jsonURL);
-    const files = await res.json(); // an array of filenames
+    const files = await res.json();
 
-    files.forEach(filename => {
-      const src = `/projects/${category}/${filename}`;
+    files.forEach((file) => {
+      const src = `/projects/${category}/${file}`;
       addImage(container, src);
     });
 
   } catch (err) {
-    console.error(`❌ Failed to load ${category}.json`, err);
+    console.error(`❌ Could not load ${jsonURL}`, err);
   }
 }
 
 
-/* Add each image to Masonry grid */
 function addImage(container, src) {
   const img = document.createElement("img");
   img.src = src;
   img.loading = "lazy";
   img.onclick = () => openFullscreen(src);
-
   container.appendChild(img);
 }
 
 
 
 /* =======================================================
-   FULLSCREEN VIEWER (MODAL)
+   FULLSCREEN VIEWER
 ======================================================= */
 
 function openFullscreen(src) {
