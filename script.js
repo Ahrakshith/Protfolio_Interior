@@ -24,38 +24,54 @@ const fadeObserver = new IntersectionObserver(
 document.querySelectorAll(".fade-section").forEach(el => fadeObserver.observe(el));
 
 
-
 /* =======================================================
-   AUTO JSON → PINTEREST GALLERY (WITH DEBUG LOGGING)
+   AUTO JSON → PINTEREST GALLERY (CLEAN URL SAFE)
 ======================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
-  const page = window.location.pathname.split("/").pop();
-  console.log("📄 Current Page:", page);
+  let page = window.location.pathname.split("/").pop();
+
+  console.log("📄 Raw Page:", page);
+
+  // When Vercel cleanUrls is enabled, `.html` is removed:
+  // /kitchen.html → /kitchen
+  if (page === "") {
+    // example: homepage (ignore)
+    page = "index";
+  }
+
+  // Remove .html if exists
+  page = page.replace(".html", "");
+
+  console.log("📄 Normalized Page:", page);
 
   const categoryMap = {
-    "kitchen.html": "kitchen",
-    "bedroom.html": "bedroom",
-    "living.html": "living",
-    "dining.html": "dining",
-    "bathroom.html": "bathroom",
-    "office.html": "office",
-    "outdoor.html": "outdoor",
-    "commercial.html": "commercial",
-    "furniture.html": "furniture"
+    kitchen: "kitchen",
+    bedroom: "bedroom",
+    living: "living",
+    dining: "dining",
+    bathroom: "bathroom",
+    office: "office",
+    outdoor: "outdoor",
+    commercial: "commercial",
+    furniture: "furniture"
   };
 
   const category = categoryMap[page];
   console.log("📂 Mapped Category:", category);
 
   if (!category) {
-    console.warn("⚠ No category found for:", page);
+    console.warn("⚠ No category matched for:", page);
     return;
   }
 
   loadCategory(category);
 });
 
+
+/* =======================================================
+   LOAD CATEGORY IMAGES FROM JSON
+======================================================= */
 
 async function loadCategory(category) {
   const containerId = `${category}Gallery`;
@@ -88,6 +104,7 @@ async function loadCategory(category) {
       console.warn("⚠ JSON loaded but EMPTY. No images found.");
     }
 
+    // Load each image
     files.forEach((filename) => {
       const src = `/projects/${category}/${filename}`;
       console.log("🖼 Creating Image Element for:", src);
@@ -100,8 +117,12 @@ async function loadCategory(category) {
 }
 
 
+/* =======================================================
+   ADD IMAGE TO PAGE
+======================================================= */
+
 function addImage(container, src) {
-  console.log("➡️ addImage() called for:", src);
+  console.log("➡️ addImage() for:", src);
 
   const img = document.createElement("img");
   img.src = src;
@@ -113,9 +134,9 @@ function addImage(container, src) {
   img.onclick = () => openFullscreen(src);
 
   container.appendChild(img);
-  console.log("📌 Appended to DOM:", src);
-}
 
+  console.log("📌 Image added to DOM:", src);
+}
 
 
 /* =======================================================
