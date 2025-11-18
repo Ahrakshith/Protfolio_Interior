@@ -26,19 +26,36 @@ document.querySelectorAll(".fade-section").forEach(el => fadeObserver.observe(el
 
 
 /* =======================================================
-   JSON-BASED PINTEREST GALLERY — UNLIMITED IMAGES
+   JSON-BASED PINTEREST GALLERY — AUTO FOR ALL CATEGORIES
 ======================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
   const page = window.location.pathname;
 
-  if (page.includes("kitchen.html")) loadCategory("kitchen");
-  if (page.includes("bedroom.html")) loadCategory("bedroom");
-  if (page.includes("living.html")) loadCategory("living");
-  if (page.includes("dining.html")) loadCategory("dining");
+  // Page → Category mapping
+  const categoryMap = {
+    "kitchen.html": "kitchen",
+    "bedroom.html": "bedroom",
+    "living.html": "living",
+    "dining.html": "dining",
+    "bathroom.html": "bathroom",
+    "office.html": "office",
+    "outdoor.html": "outdoor",
+    "commercial.html": "commercial",
+    "furniture.html": "furniture"
+  };
+
+  // Detect current page
+  for (const file in categoryMap) {
+    if (page.includes(file)) {
+      loadCategory(categoryMap[file]);
+      break;
+    }
+  }
 });
 
 
+/* Load images from auto-generated JSON */
 async function loadCategory(category) {
   const container = document.getElementById(`${category}Gallery`);
   if (!container) return;
@@ -47,32 +64,33 @@ async function loadCategory(category) {
 
   try {
     const res = await fetch(jsonURL);
-    const files = await res.json();  // Array of filenames
+    const files = await res.json(); // an array of filenames
 
-    files.forEach(name => {
-      const src = `/projects/${category}/${name}`;
-      renderImage(container, src);
+    files.forEach(filename => {
+      const src = `/projects/${category}/${filename}`;
+      addImage(container, src);
     });
 
   } catch (err) {
-    console.error(`Failed to load ${category}.json`, err);
+    console.error(`❌ Failed to load ${category}.json`, err);
   }
 }
 
 
-/* Add image to Masonry grid */
-function renderImage(container, src) {
+/* Add each image to Masonry grid */
+function addImage(container, src) {
   const img = document.createElement("img");
-  img.loading = "lazy";
   img.src = src;
+  img.loading = "lazy";
   img.onclick = () => openFullscreen(src);
+
   container.appendChild(img);
 }
 
 
 
 /* =======================================================
-   FULLSCREEN VIEWER
+   FULLSCREEN VIEWER (MODAL)
 ======================================================= */
 
 function openFullscreen(src) {
