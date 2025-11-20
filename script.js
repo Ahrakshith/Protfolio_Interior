@@ -21,17 +21,18 @@ const fadeObserver = new IntersectionObserver(
   { threshold: 0.2 }
 );
 
-document.querySelectorAll(".fade-section").forEach(el => fadeObserver.observe(el));
+document.querySelectorAll(".fade-section").forEach(el =>
+  fadeObserver.observe(el)
+);
 
 
 
 /* =======================================================
-   CLEAN URL → CATEGORY DETECTION
+   CLEAN URL → CATEGORY DETECTION (NORMAL + PREMIUM)
 ======================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
   let page = window.location.pathname.split("/").pop();
-
   if (!page || page === "") page = "index";
 
   page = page.replace(".html", "");
@@ -45,7 +46,15 @@ document.addEventListener("DOMContentLoaded", () => {
     office: "office",
     outdoor: "outdoor",
     commercial: "commercial",
-    furniture: "furniture"
+    furniture: "furniture",
+
+    /* NEW PREMIUM SUPPORT */
+    "premium-kitchen": "premium-kitchen",
+    "premium-bedroom": "premium-bedroom",
+    "premium-dining": "premium-dining",
+    "premium-furniture": "premium-furniture",
+    "premium-living": "premium-living",
+    "premium-bathroom": "premium-bathroom"
   };
 
   const category = categoryMap[page];
@@ -73,7 +82,7 @@ function preloadImage(url) {
 
 
 /* =======================================================
-   LOAD CATEGORY IMAGES (Pinterest blur-up)
+   LOAD CATEGORY IMAGES (NORMAL + PREMIUM)
 ======================================================= */
 
 async function loadCategory(category) {
@@ -85,7 +94,6 @@ async function loadCategory(category) {
   try {
     const res = await fetch(jsonURL);
     const files = await res.json();
-
     if (!Array.isArray(files)) return;
 
     const imageUrls = files.map(f => `/projects/${category}/${f}`);
@@ -94,14 +102,15 @@ async function loadCategory(category) {
     const firstBatch = imageUrls.slice(0, 10);
     await Promise.all(firstBatch.map(preloadImage));
 
-    // Render first 10
+    /* Render first 10 instantly */
     firstBatch.forEach(src => addImage(container, src));
 
     /* --- LAZY LOAD THE REST --- */
     const remaining = imageUrls.slice(10);
     remaining.forEach(src => createLazyImage(container, src));
 
-    observeLazyImages(); // activate lazy loading
+    /* Start observing */
+    observeLazyImages();
 
   } catch (err) {
     console.error("❌ JSON Load Error:", err);
@@ -111,22 +120,23 @@ async function loadCategory(category) {
 
 
 /* =======================================================
-   CREATE LAZY IMAGE (with blur-up)
+   CREATE LAZY IMAGE (blur-up)
 ======================================================= */
 
 function createLazyImage(container, src) {
   const img = document.createElement("img");
   img.dataset.src = src;
-  img.classList.add("masonry-img"); // ensures blur-up and opacity rules apply
+  img.classList.add("masonry-img");
   img.loading = "lazy";
   img.onclick = () => openFullscreen(src);
+
   container.appendChild(img);
 }
 
 
 
 /* =======================================================
-   LAZY LOADING (smooth Pinterest scroll)
+   LAZY LOADING (smooth Pinterest effect)
 ======================================================= */
 
 function observeLazyImages() {
@@ -138,14 +148,15 @@ function observeLazyImages() {
         const img = entry.target;
 
         img.src = img.dataset.src;
-        img.onload = () => img.classList.add("loaded"); // enables fade-in + remove blur
+
+        img.onload = () => img.classList.add("loaded");
         img.removeAttribute("data-src");
 
         observer.unobserve(img);
       }
     });
   }, {
-    rootMargin: "300px 0px", // load before visible
+    rootMargin: "300px 0px",
     threshold: 0.01
   });
 
@@ -155,13 +166,13 @@ function observeLazyImages() {
 
 
 /* =======================================================
-   ADD IMAGE TO DOM (instant images)
+   ADD IMAGE TO DOM (instant-on)
 ======================================================= */
 
 function addImage(container, src) {
   const img = document.createElement("img");
   img.src = src;
-  img.classList.add("masonry-img");  // important for blur-up fade
+  img.classList.add("masonry-img");
   img.loading = "eager";
 
   img.onload = () => img.classList.add("loaded");
@@ -179,7 +190,6 @@ function addImage(container, src) {
 function openFullscreen(src) {
   const modal = document.getElementById("fullscreenModal");
   const modalImg = document.getElementById("fullscreenImg");
-
   modalImg.src = src;
   modal.style.display = "flex";
 }
