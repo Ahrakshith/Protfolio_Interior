@@ -181,8 +181,6 @@ function addImage(container, src) {
   container.appendChild(img);
 }
 
-
-
 /* =======================================================
    FULLSCREEN VIEWER
 ======================================================= */
