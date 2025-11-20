@@ -37,30 +37,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   page = page.replace(".html", "");
 
-  const categoryMap = {
-    kitchen: "kitchen",
-    bedroom: "bedroom",
-    living: "living",
-    dining: "dining",
-    bathroom: "bathroom",
-    office: "office",
-    outdoor: "outdoor",
-    commercial: "commercial",
-    furniture: "furniture",
+  console.log("🔎 CURRENT PAGE:", page);
 
-    /* NEW PREMIUM SUPPORT */
-    "premium-kitchen": "premium-kitchen",
-    "premium-bedroom": "premium-bedroom",
-    "premium-dining": "premium-dining",
-    "premium-furniture": "premium-furniture",
-    "premium-living": "premium-living",
-    "premium-bathroom": "premium-bathroom"
-  };
+  // If premium.html → load all premium sections
+  if (page === "premium") {
+    console.log("🎨 PREMIUM PAGE DETECTED → Loading all premium sections");
+    loadCategory("premium-kitchen");
+    loadCategory("premium-living");
+    loadCategory("premium-bedroom");
+    loadCategory("premium-dining");
+    loadCategory("premium-bathroom");
+    loadCategory("premium-furniture");
+    return;
+  }
 
-  const category = categoryMap[page];
-  if (!category) return;
-
-  loadCategory(category);
+  // Normal category pages
+  console.log("📂 NORMAL CATEGORY PAGE:", page);
+  loadCategory(page);
 });
 
 
@@ -74,8 +67,14 @@ function preloadImage(url) {
     const img = new Image();
     img.src = url;
 
-    img.onload = () => resolve({ url, ok: true });
-    img.onerror = () => resolve({ url, ok: false });
+    img.onload = () => {
+      console.log("✅ Preloaded:", url);
+      resolve({ url, ok: true });
+    };
+    img.onerror = () => {
+      console.warn("❌ Failed to preload:", url);
+      resolve({ url, ok: false });
+    };
   });
 }
 
@@ -86,31 +85,53 @@ function preloadImage(url) {
 ======================================================= */
 
 async function loadCategory(category) {
-  
+  console.log("\n----------------------------------------");
+  console.log("📥 LOAD CATEGORY:", category);
+
   const container = document.getElementById(`${category}Gallery`);
-  if (!container) return;
+  console.log("🔍 Looking for container ID:", `${category}Gallery`);
+  console.log("📦 Container found:", container);
+
+  if (!container) {
+    console.error("❌ ERROR: Container NOT FOUND for:", category);
+    return;
+  }
 
   const jsonURL = `/data/${category}.json`;
+  console.log("📄 Fetching JSON:", jsonURL);
 
   try {
     const res = await fetch(jsonURL);
+
+    if (!res.ok) {
+      console.error("❌ JSON NOT FOUND:", jsonURL);
+      return;
+    }
+
     const files = await res.json();
-    if (!Array.isArray(files)) return;
+    console.log("📁 JSON contents:", files);
+
+    if (!Array.isArray(files)) {
+      console.error("❌ JSON IS NOT AN ARRAY:", files);
+      return;
+    }
 
     const imageUrls = files.map(f => `/projects/${category}/${f}`);
+    console.log("🖼️ Expected image URLs:", imageUrls);
 
     /* --- PRELOAD FIRST 10 --- */
     const firstBatch = imageUrls.slice(0, 10);
+    console.log("🚀 Preloading first 10 images…");
     await Promise.all(firstBatch.map(preloadImage));
 
     /* Render first 10 instantly */
     firstBatch.forEach(src => addImage(container, src));
 
-    /* --- LAZY LOAD THE REST --- */
+    /* --- LAZY LOAD REST --- */
     const remaining = imageUrls.slice(10);
+    console.log("🕒 Remaining lazy images:", remaining.length);
     remaining.forEach(src => createLazyImage(container, src));
 
-    /* Start observing */
     observeLazyImages();
 
   } catch (err) {
@@ -125,6 +146,8 @@ async function loadCategory(category) {
 ======================================================= */
 
 function createLazyImage(container, src) {
+  console.log("🟡 Creating lazy image:", src);
+
   const img = document.createElement("img");
   img.dataset.src = src;
   img.classList.add("masonry-img");
@@ -142,17 +165,22 @@ function createLazyImage(container, src) {
 
 function observeLazyImages() {
   const lazyImgs = document.querySelectorAll("img[data-src]");
+  console.log("👀 Observing lazy images:", lazyImgs.length);
 
   const obs = new IntersectionObserver((entries, observer) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const img = entry.target;
+        console.log("📸 Lazy loading:", img.dataset.src);
 
         img.src = img.dataset.src;
 
-        img.onload = () => img.classList.add("loaded");
-        img.removeAttribute("data-src");
+        img.onload = () => {
+          console.log("✅ Loaded:", img.src);
+          img.classList.add("loaded");
+        };
 
+        img.removeAttribute("data-src");
         observer.unobserve(img);
       }
     });
@@ -171,22 +199,36 @@ function observeLazyImages() {
 ======================================================= */
 
 function addImage(container, src) {
+  console.log("🟢 Adding instant image:", src);
+
   const img = document.createElement("img");
   img.src = src;
   img.classList.add("masonry-img");
   img.loading = "eager";
 
-  img.onload = () => img.classList.add("loaded");
+  img.onload = () => {
+    console.log("✔️ Instant image loaded:", src);
+    img.classList.add("loaded");
+  };
+
+  img.onerror = () => {
+    console.error("❌ Instant image failed:", src);
+  };
+
   img.onclick = () => openFullscreen(src);
 
   container.appendChild(img);
 }
+
+
 
 /* =======================================================
    FULLSCREEN VIEWER
 ======================================================= */
 
 function openFullscreen(src) {
+  console.log("🔍 Opening fullscreen:", src);
+
   const modal = document.getElementById("fullscreenModal");
   const modalImg = document.getElementById("fullscreenImg");
   modalImg.src = src;
