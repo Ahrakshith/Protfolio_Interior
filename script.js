@@ -8,24 +8,32 @@ function scrollToSection(id) {
 
 window.addEventListener("scroll", () => {
   const nav = document.getElementById("navbar");
-  window.scrollY > 80 ? nav.classList.add("scrolled") : nav.classList.remove("scrolled");
+  if (window.scrollY > 80) nav.classList.add("scrolled");
+  else nav.classList.remove("scrolled");
 });
 
 const fadeObserver = new IntersectionObserver(
-  entries => entries.forEach(e => e.isIntersecting && e.target.classList.add("visible")),
+  entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add("visible");
+    });
+  },
   { threshold: 0.2 }
 );
+
 document.querySelectorAll(".fade-section").forEach(el => fadeObserver.observe(el));
 
 
 
-/* ============================
-   DETECT CATEGORY
-============================ */
+/* =======================================================
+   CLEAN URL → CATEGORY DETECTION
+======================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
   let page = window.location.pathname.split("/").pop();
-  if (!page) page = "index";
+
+  if (!page || page === "") page = "index";
+
   page = page.replace(".html", "");
 
   const categoryMap = {
@@ -41,29 +49,31 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const category = categoryMap[page];
-  if (category) loadCategory(category);
+  if (!category) return;
+
+  loadCategory(category);
 });
 
 
 
-/* ============================
-   PRELOAD FIRST 10 IMAGES
-============================ */
+/* =======================================================
+   PRELOAD FIRST 10 IMAGES (FAST)
+======================================================= */
 
-function preloadImage(src) {
+function preloadImage(url) {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.src = src;
-    img.onload = () => resolve(src);
-    img.onerror = () => reject(src);
+    img.src = url;
+    img.onload = () => resolve(url);
+    img.onerror = () => reject(url);
   });
 }
 
 
 
-/* ============================
-   LOAD CATEGORY
-============================ */
+/* =======================================================
+   LOAD CATEGORY IMAGES (Pinterest style)
+======================================================= */
 
 async function loadCategory(category) {
   const container = document.getElementById(`${category}Gallery`);
@@ -74,132 +84,84 @@ async function loadCategory(category) {
   try {
     const res = await fetch(jsonURL);
     const files = await res.json();
+
     if (!Array.isArray(files)) return;
 
-    const imageUrls = files.map(file => `/projects/${category}/${file}`);
+    const imageUrls = files.map(f => `/projects/${category}/${f}`);
 
-    /* Preload first 10 */
+    /* --- PRELOAD FIRST 10 --- */
     const firstBatch = imageUrls.slice(0, 10);
     await Promise.all(firstBatch.map(preloadImage));
 
-    /* Create Masonry columns */
-    createColumns(container);
+    firstBatch.forEach(src => addImage(container, src));
 
-    /* Insert first 10 instantly */
-    firstBatch.forEach(src => addMasonryImage(container, src, true));
-
-    /* Lazy-load rest */
+    /* --- LAZY LOAD THE REST --- */
     const remaining = imageUrls.slice(10);
-    remaining.forEach(src => queueLazyImage(container, src));
+    remaining.forEach(src => {
+      const img = document.createElement("img");
+      img.dataset.src = src;
+      img.loading = "lazy";
+      img.onclick = () => openFullscreen(src);
+      container.appendChild(img);
+    });
 
-    startLazyObserver();
+    observeLazyImages();
 
   } catch (err) {
-    console.error("Error loading JSON:", err);
+    console.error("❌ JSON Load Error:", err);
   }
 }
 
 
 
-/* ============================
-   CREATE MASONRY COLUMNS
-============================ */
+/* =======================================================
+   LAZY LOADING (smooth Pinterest scroll)
+======================================================= */
 
-function createColumns(container) {
-  container.innerHTML = "";
+function observeLazyImages() {
+  const lazyImgs = document.querySelectorAll("img[data-src]");
 
-  const cols = parseInt(
-    getComputedStyle(container).getPropertyValue("--columns")
-  ) || 3;
-
-  for (let i = 0; i < cols; i++) {
-    const col = document.createElement("div");
-    col.className = "masonry-column";
-    container.appendChild(col);
-  }
-}
-
-
-
-/* ============================
-   MASONRY INSERTION (Pinterest)
-============================ */
-
-function getShortestColumn(container) {
-  return [...container.children].sort((a, b) => a.offsetHeight - b.offsetHeight)[0];
-}
-
-function addMasonryImage(container, src, loadedInstant = false) {
-  const img = document.createElement("img");
-  img.className = "masonry-img";
-  img.onclick = () => openFullscreen(src);
-
-  if (loadedInstant) {
-    // sharp image immediately
-    img.src = src;
-    img.classList.add("loaded");
-  } else {
-    // blur-up effect
-    img.src = src;
-    img.onload = () => img.classList.add("loaded");
-  }
-
-  const column = getShortestColumn(container);
-  column.appendChild(img);
-}
-
-
-
-/* ============================
-   LAZY LOADING (Pinterest-fast)
-============================ */
-
-let lazyQueue = [];
-
-function queueLazyImage(container, src) {
-  lazyQueue.push({ container, src });
-}
-
-function startLazyObserver() {
-  const observer = new IntersectionObserver(entries => {
+  const obs = new IntersectionObserver((entries, observer) => {
     entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-
-      const imgTag = entry.target;
-      const src = imgTag.dataset.src;
-
-      imgTag.src = src;
-
-      imgTag.onload = () => imgTag.classList.add("loaded");
-      observer.unobserve(imgTag);
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        img.src = img.dataset.src;
+        img.removeAttribute("data-src");
+        observer.unobserve(img);
+      }
     });
   }, {
-    rootMargin: "300px 0px",
+    rootMargin: "300px 0px",   // load before entering screen
     threshold: 0.01
   });
 
-  lazyQueue.forEach(item => {
-    const img = document.createElement("img");
-    img.className = "masonry-img";
-    img.dataset.src = item.src;
-    img.onclick = () => openFullscreen(item.src);
-
-    getShortestColumn(item.container).appendChild(img);
-    observer.observe(img);
-  });
-
-  lazyQueue = [];
+  lazyImgs.forEach(img => obs.observe(img));
 }
 
 
 
-/* ============================
+/* =======================================================
+   ADD IMAGE TO DOM
+======================================================= */
+
+function addImage(container, src) {
+  const img = document.createElement("img");
+  img.src = src;
+  img.loading = "eager";
+  img.onclick = () => openFullscreen(src);
+  container.appendChild(img);
+}
+
+
+
+/* =======================================================
    FULLSCREEN VIEWER
-============================ */
+======================================================= */
 
 function openFullscreen(src) {
   const modal = document.getElementById("fullscreenModal");
   const modalImg = document.getElementById("fullscreenImg");
+
   modalImg.src = src;
   modal.style.display = "flex";
 }
