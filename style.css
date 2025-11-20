@@ -536,3 +536,29 @@ img {
   margin-bottom: 10px;
   font-size: 26px;
 }
+/* -------- UNIFORM GRID FOR PREMIUM -------- */
+.premium-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.premium-gallery img {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  border-radius: 12px;
+  opacity: 0;
+  filter: blur(25px);
+  transition: opacity .45s ease, filter .45s ease, transform .25s ease;
+}
+
+.premium-gallery img.loaded {
+  opacity: 1;
+  filter: blur(0);
+}
+
+.premium-gallery img:hover {
+  transform: scale(1.02);
+}
