@@ -86,7 +86,7 @@ function preloadImage(url) {
 ======================================================= */
 
 async function loadCategory(category) {
-  const container = document.getElementById(`${category}Gallery`);
+  const container = document.getElementById(category);
   if (!container) return;
 
   const jsonURL = `/data/${category}.json`;
