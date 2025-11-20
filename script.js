@@ -57,22 +57,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 /* =======================================================
-   PRELOAD FIRST 10 IMAGES (FAST)
+   PRELOAD FIRST 10 IMAGES FAST
 ======================================================= */
 
 function preloadImage(url) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const img = new Image();
     img.src = url;
-    img.onload = () => resolve(url);
-    img.onerror = () => reject(url);
+
+    img.onload = () => resolve({ url, ok: true });
+    img.onerror = () => resolve({ url, ok: false });
   });
 }
 
 
 
 /* =======================================================
-   LOAD CATEGORY IMAGES (Pinterest style)
+   LOAD CATEGORY IMAGES (Pinterest blur-up)
 ======================================================= */
 
 async function loadCategory(category) {
@@ -93,23 +94,33 @@ async function loadCategory(category) {
     const firstBatch = imageUrls.slice(0, 10);
     await Promise.all(firstBatch.map(preloadImage));
 
+    // Render first 10
     firstBatch.forEach(src => addImage(container, src));
 
     /* --- LAZY LOAD THE REST --- */
     const remaining = imageUrls.slice(10);
-    remaining.forEach(src => {
-      const img = document.createElement("img");
-      img.dataset.src = src;
-      img.loading = "lazy";
-      img.onclick = () => openFullscreen(src);
-      container.appendChild(img);
-    });
+    remaining.forEach(src => createLazyImage(container, src));
 
-    observeLazyImages();
+    observeLazyImages(); // activate lazy loading
 
   } catch (err) {
     console.error("❌ JSON Load Error:", err);
   }
+}
+
+
+
+/* =======================================================
+   CREATE LAZY IMAGE (with blur-up)
+======================================================= */
+
+function createLazyImage(container, src) {
+  const img = document.createElement("img");
+  img.dataset.src = src;
+  img.classList.add("masonry-img"); // ensures blur-up and opacity rules apply
+  img.loading = "lazy";
+  img.onclick = () => openFullscreen(src);
+  container.appendChild(img);
 }
 
 
@@ -125,13 +136,16 @@ function observeLazyImages() {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const img = entry.target;
+
         img.src = img.dataset.src;
+        img.onload = () => img.classList.add("loaded"); // enables fade-in + remove blur
         img.removeAttribute("data-src");
+
         observer.unobserve(img);
       }
     });
   }, {
-    rootMargin: "300px 0px",   // load before entering screen
+    rootMargin: "300px 0px", // load before visible
     threshold: 0.01
   });
 
@@ -141,14 +155,18 @@ function observeLazyImages() {
 
 
 /* =======================================================
-   ADD IMAGE TO DOM
+   ADD IMAGE TO DOM (instant images)
 ======================================================= */
 
 function addImage(container, src) {
   const img = document.createElement("img");
   img.src = src;
+  img.classList.add("masonry-img");  // important for blur-up fade
   img.loading = "eager";
+
+  img.onload = () => img.classList.add("loaded");
   img.onclick = () => openFullscreen(src);
+
   container.appendChild(img);
 }
 

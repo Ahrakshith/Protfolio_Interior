@@ -53,9 +53,8 @@ body{font-family:"Poppins",sans-serif;color:var(--espresso);background-color:var
 .fade-section{opacity:0;transform:translateY(40px);transition:opacity .8s ease,transform .8s ease}
 .fade-section.visible{opacity:1;transform:translateY(0)}
 
-
 /* -----------------------------------------------------------
-   PINTEREST MASONRY GALLERY (NEW — fixes flicker & jump)
+   PINTEREST MASONRY GALLERY (Final stable version)
 ------------------------------------------------------------ */
 
 .masonry {
@@ -67,30 +66,35 @@ body{font-family:"Poppins",sans-serif;color:var(--espresso);background-color:var
 @media (max-width: 900px) { .masonry { column-count: 2; } }
 @media (max-width: 600px) { .masonry { column-count: 1; } }
 
-/* The critical fix for stability */
+/* Smooth, stable, blur-up images */
 .masonry img {
   width: 100%;
   margin-bottom: 20px;
   border-radius: 12px;
   cursor: pointer;
-  transition: transform .25s ease, opacity .3s ease;
-  background: #f2f2f2;
 
-  /* prevent layout jump */
+  /* Prevents jump + keeps gallery stable */
   aspect-ratio: 3 / 2;
+  background: #eee;
 
-  /* fade-in */
+  /* Start blurred and transparent */
   opacity: 0;
+  filter: blur(25px);
+
+  /* Smooth fade-in */
+  transition: opacity .45s ease, filter .45s ease, transform .25s ease;
 }
 
-.masonry img[src] {
+/* When actual image loads */
+.masonry img.loaded {
   opacity: 1;
+  filter: blur(0);
 }
 
+/* Hover zoom */
 .masonry img:hover {
   transform: scale(1.02);
 }
-
 
 /* -----------------------------------------------------------
    FULLSCREEN VIEWER (existing)
