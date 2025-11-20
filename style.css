@@ -219,3 +219,12 @@ body{font-family:"Poppins",sans-serif;color:var(--espresso);background-color:var
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* Premium Page Title Alignment */
+.premium-block {
+  padding-left: 20px;
+}
+.premium-title {
+  margin-bottom: 10px;
+  font-size: 26px;
+}
