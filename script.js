@@ -1,4 +1,4 @@
-/* ============================
+current script.js--> /* ============================
    NAVBAR + FADE
 ============================ */
 
@@ -72,32 +72,7 @@ function preloadImage(url) {
 
 
 /* =======================================================
-   PINTEREST MASONRY ENGINE
-======================================================= */
-
-function createMasonryColumns(container, count) {
-  container.innerHTML = ""; // clear previous content
-  const columns = [];
-
-  for (let i = 0; i < count; i++) {
-    const col = document.createElement("div");
-    col.className = "masonry-column";
-    columns.push(col);
-    container.appendChild(col);
-  }
-
-  return columns;
-}
-
-function getColumnCount() {
-  const container = document.querySelector(".masonry-container");
-  return parseInt(getComputedStyle(container).getPropertyValue("--columns")) || 3;
-}
-
-
-
-/* =======================================================
-   LOAD CATEGORY IMAGES (true Pinterest layout)
+   LOAD CATEGORY IMAGES (Pinterest style)
 ======================================================= */
 
 async function loadCategory(category) {
@@ -109,106 +84,72 @@ async function loadCategory(category) {
   try {
     const res = await fetch(jsonURL);
     const files = await res.json();
+
     if (!Array.isArray(files)) return;
 
     const imageUrls = files.map(f => `/projects/${category}/${f}`);
 
-    /* --- CREATE PINTEREST COLUMNS --- */
-    const colCount = getColumnCount();
-    let columns = createMasonryColumns(container, colCount);
-
-    /* --- PRELOAD FIRST 10 IMAGES --- */
+    /* --- PRELOAD FIRST 10 --- */
     const firstBatch = imageUrls.slice(0, 10);
     await Promise.all(firstBatch.map(preloadImage));
 
-    firstBatch.forEach(src => placeImage(columns, src, true));
+    firstBatch.forEach(src => addImage(container, src));
 
-    /* --- LAZY LOAD REMAINING IMAGES --- */
+    /* --- LAZY LOAD THE REST --- */
     const remaining = imageUrls.slice(10);
-    remaining.forEach(src => lazyPlace(columns, src));
+    remaining.forEach(src => {
+      const img = document.createElement("img");
+      img.dataset.src = src;
+      img.loading = "lazy";
+      img.onclick = () => openFullscreen(src);
+      container.appendChild(img);
+    });
 
-    setupLazyObserver();
+    observeLazyImages();
 
   } catch (err) {
     console.error("❌ JSON Load Error:", err);
   }
-
-  /* --- Recalculate on resize --- */
-  window.addEventListener("resize", () => {
-    const newCount = getColumnCount();
-    const allImgs = Array.from(container.querySelectorAll("img"));
-    const columns = createMasonryColumns(container, newCount);
-    allImgs.forEach(img => placeExisting(columns, img));
-  });
 }
 
 
 
 /* =======================================================
-   PLACE IMAGES INTO SHORTEST COLUMN
+   LAZY LOADING (smooth Pinterest scroll)
 ======================================================= */
 
-function getShortestColumn(columns) {
-  return columns.reduce((shortest, col) =>
-    col.scrollHeight < shortest.scrollHeight ? col : shortest
-  );
-}
-
-function placeImage(columns, src, preload = false) {
-  const img = document.createElement("img");
-  img.className = "masonry-img";
-  img.loading = preload ? "eager" : "lazy";
-  img.src = src;
-  img.onclick = () => openFullscreen(src);
-
-  img.onload = () => img.classList.add("loaded");
-
-  const col = getShortestColumn(columns);
-  col.appendChild(img);
-}
-
-function lazyPlace(columns, src) {
-  const img = document.createElement("img");
-  img.className = "masonry-img";
-  img.dataset.src = src;
-  img.onclick = () => openFullscreen(src);
-
-  const col = getShortestColumn(columns);
-  col.appendChild(img);
-}
-
-function placeExisting(columns, img) {
-  const col = getShortestColumn(columns);
-  col.appendChild(img);
-}
-
-
-
-/* =======================================================
-   LAZY LOADING FOR REMAINING IMAGES
-======================================================= */
-
-function setupLazyObserver() {
+function observeLazyImages() {
   const lazyImgs = document.querySelectorAll("img[data-src]");
 
-  const obs = new IntersectionObserver(entries => {
+  const obs = new IntersectionObserver((entries, observer) => {
     entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-
-      const img = entry.target;
-      img.src = img.dataset.src;
-      img.removeAttribute("data-src");
-
-      img.onload = () => img.classList.add("loaded");
-
-      obs.unobserve(img);
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        img.src = img.dataset.src;
+        img.removeAttribute("data-src");
+        observer.unobserve(img);
+      }
     });
   }, {
-    rootMargin: "300px 0px",
+    rootMargin: "300px 0px",   // load before entering screen
     threshold: 0.01
   });
 
   lazyImgs.forEach(img => obs.observe(img));
+}
+
+
+
+/* =======================================================
+   ADD IMAGE TO DOM
+======================================================= */
+
+function addImage(container, src) {
+  const img = document.createElement("img");
+  img.src = src;
+  img.loading = "eager";
+  img.onclick = () => openFullscreen(src);
+  container.appendChild(img);
 }
 
 
