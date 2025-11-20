@@ -28,7 +28,7 @@ document.querySelectorAll(".fade-section").forEach(el =>
 
 
 /* =======================================================
-   CLEAN URL → CATEGORY DETECTION
+   CLEAN URL → CATEGORY DETECTION (NORMAL + PREMIUM)
 ======================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -106,7 +106,7 @@ async function loadCategory(category) {
 
     const imageUrls = files
       .map(f => `/projects/${category}/${f}`)
-      .filter(url => url);
+      .filter(url => url && url !== "undefined" && url !== "/projects//");
 
     console.log("🖼️ Cleaned image URLs:", imageUrls);
 
@@ -171,9 +171,7 @@ function addLazyVerified(container, src) {
     img.dataset.src = src;
     img.classList.add("masonry-img");
     img.loading = "lazy";
-
     img.onclick = () => openFullscreen(src);
-
     container.appendChild(img);
   };
 
@@ -200,14 +198,8 @@ function observeLazyImages() {
       img.src = img.dataset.src;
 
       img.onload = () => img.classList.add("loaded");
-
-      /* REMOVE failed images instantly */
-      img.onerror = () => {
-        console.error("❌ Failed lazy image removed:", img.dataset.src);
-        img.remove();
-      };
-
       img.removeAttribute("data-src");
+
       observer.unobserve(img);
     });
   }, {
