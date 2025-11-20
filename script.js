@@ -39,6 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   console.log("🔎 CURRENT PAGE:", page);
 
+  // If premium.html → load all premium sections
   if (page === "premium") {
     console.log("🎨 PREMIUM PAGE DETECTED → Loading all premium sections");
     loadCategory("premium-kitchen");
@@ -50,6 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
+  // Normal category pages
   console.log("📂 NORMAL CATEGORY PAGE:", page);
   loadCategory(page);
 });
@@ -57,25 +59,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 /* =======================================================
-   PRELOAD FIRST 10 IMAGES
+   PRELOAD FIRST 10 IMAGES FAST
 ======================================================= */
 
 function preloadImage(url) {
   return new Promise((resolve) => {
-    if (!url) return resolve({ url, ok: false });
-
     const img = new Image();
     img.src = url;
 
-    img.onload = () => resolve({ url, ok: true });
-    img.onerror = () => resolve({ url, ok: false });
+    img.onload = () => {
+      console.log("✅ Preloaded:", url);
+      resolve({ url, ok: true });
+    };
+    img.onerror = () => {
+      console.warn("❌ Failed to preload:", url);
+      resolve({ url, ok: false });
+    };
   });
 }
 
 
 
 /* =======================================================
-   LOAD CATEGORY IMAGES
+   LOAD CATEGORY IMAGES (NORMAL + PREMIUM)
 ======================================================= */
 
 async function loadCategory(category) {
@@ -83,6 +89,9 @@ async function loadCategory(category) {
   console.log("📥 LOAD CATEGORY:", category);
 
   const container = document.getElementById(`${category}Gallery`);
+  console.log("🔍 Looking for container ID:", `${category}Gallery`);
+  console.log("📦 Container found:", container);
+
   if (!container) {
     console.error("❌ ERROR: Container NOT FOUND for:", category);
     return;
@@ -93,33 +102,35 @@ async function loadCategory(category) {
 
   try {
     const res = await fetch(jsonURL);
+
     if (!res.ok) {
       console.error("❌ JSON NOT FOUND:", jsonURL);
       return;
     }
 
     const files = await res.json();
+    console.log("📁 JSON contents:", files);
+
     if (!Array.isArray(files)) {
       console.error("❌ JSON IS NOT AN ARRAY:", files);
       return;
     }
 
-    const imageUrls = files
-      .map(f => `/projects/${category}/${f}`)
-      .filter(url => url && url !== "undefined" && url !== "/projects//");
-
-    console.log("🖼️ Cleaned image URLs:", imageUrls);
+    const imageUrls = files.map(f => `/projects/${category}/${f}`);
+    console.log("🖼️ Expected image URLs:", imageUrls);
 
     /* --- PRELOAD FIRST 10 --- */
     const firstBatch = imageUrls.slice(0, 10);
+    console.log("🚀 Preloading first 10 images…");
     await Promise.all(firstBatch.map(preloadImage));
 
-    /* Add only those that successfully preloaded */
-    firstBatch.forEach(src => addInstantVerified(container, src));
+    /* Render first 10 instantly */
+    firstBatch.forEach(src => addImage(container, src));
 
     /* --- LAZY LOAD REST --- */
     const remaining = imageUrls.slice(10);
-    remaining.forEach(src => addLazyVerified(container, src));
+    console.log("🕒 Remaining lazy images:", remaining.length);
+    remaining.forEach(src => createLazyImage(container, src));
 
     observeLazyImages();
 
@@ -131,59 +142,25 @@ async function loadCategory(category) {
 
 
 /* =======================================================
-   VERIFIED INSTANT IMAGE (skip bad URLs)
+   CREATE LAZY IMAGE (blur-up)
 ======================================================= */
 
-function addInstantVerified(container, src) {
-  if (!src) return;
+function createLazyImage(container, src) {
+  console.log("🟡 Creating lazy image:", src);
 
-  const test = new Image();
-  test.src = src;
+  const img = document.createElement("img");
+  img.dataset.src = src;
+  img.classList.add("masonry-img");
+  img.loading = "lazy";
+  img.onclick = () => openFullscreen(src);
 
-  test.onload = () => {
-    const img = document.createElement("img");
-    img.src = src;
-    img.classList.add("masonry-img", "loaded");
-    img.loading = "eager";
-    img.onclick = () => openFullscreen(src);
-    container.appendChild(img);
-  };
-
-  test.onerror = () => {
-    console.warn("❌ Skipping bad instant image:", src);
-  };
+  container.appendChild(img);
 }
 
 
 
 /* =======================================================
-   VERIFIED LAZY IMAGE (skip bad URLs)
-======================================================= */
-
-function addLazyVerified(container, src) {
-  if (!src) return;
-
-  const test = new Image();
-  test.src = src;
-
-  test.onload = () => {
-    const img = document.createElement("img");
-    img.dataset.src = src;
-    img.classList.add("masonry-img");
-    img.loading = "lazy";
-    img.onclick = () => openFullscreen(src);
-    container.appendChild(img);
-  };
-
-  test.onerror = () => {
-    console.warn("❌ Skipping bad lazy image:", src);
-  };
-}
-
-
-
-/* =======================================================
-   LAZY LOADING (Pinterest style)
+   LAZY LOADING (smooth Pinterest effect)
 ======================================================= */
 
 function observeLazyImages() {
@@ -192,15 +169,20 @@ function observeLazyImages() {
 
   const obs = new IntersectionObserver((entries, observer) => {
     entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        console.log("📸 Lazy loading:", img.dataset.src);
 
-      const img = entry.target;
-      img.src = img.dataset.src;
+        img.src = img.dataset.src;
 
-      img.onload = () => img.classList.add("loaded");
-      img.removeAttribute("data-src");
+        img.onload = () => {
+          console.log("✅ Loaded:", img.src);
+          img.classList.add("loaded");
+        };
 
-      observer.unobserve(img);
+        img.removeAttribute("data-src");
+        observer.unobserve(img);
+      }
     });
   }, {
     rootMargin: "300px 0px",
@@ -213,10 +195,40 @@ function observeLazyImages() {
 
 
 /* =======================================================
+   ADD IMAGE TO DOM (instant-on)
+======================================================= */
+
+function addImage(container, src) {
+  console.log("🟢 Adding instant image:", src);
+
+  const img = document.createElement("img");
+  img.src = src;
+  img.classList.add("masonry-img");
+  img.loading = "eager";
+
+  img.onload = () => {
+    console.log("✔️ Instant image loaded:", src);
+    img.classList.add("loaded");
+  };
+
+  img.onerror = () => {
+    console.error("❌ Instant image failed:", src);
+  };
+
+  img.onclick = () => openFullscreen(src);
+
+  container.appendChild(img);
+}
+
+
+
+/* =======================================================
    FULLSCREEN VIEWER
 ======================================================= */
 
 function openFullscreen(src) {
+  console.log("🔍 Opening fullscreen:", src);
+
   const modal = document.getElementById("fullscreenModal");
   const modalImg = document.getElementById("fullscreenImg");
   modalImg.src = src;
