@@ -31,12 +31,10 @@ document.querySelectorAll(".fade-section").forEach(el => fadeObserver.observe(el
 
 document.addEventListener("DOMContentLoaded", () => {
   let page = window.location.pathname.split("/").pop();
-  console.log("📄 Raw Page:", page);
 
   if (!page || page === "") page = "index";
 
   page = page.replace(".html", "");
-  console.log("📄 Normalized Page:", page);
 
   const categoryMap = {
     kitchen: "kitchen",
@@ -51,16 +49,15 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const category = categoryMap[page];
-  console.log("📂 Mapped Category:", category);
-
   if (!category) return;
+
   loadCategory(category);
 });
 
 
 
 /* =======================================================
-   FAST IMAGE LOADER (PRELOAD FIRST 6, LAZY REST)
+   PRELOAD FIRST 10 IMAGES (FAST)
 ======================================================= */
 
 function preloadImage(url) {
@@ -74,42 +71,35 @@ function preloadImage(url) {
 
 
 
+/* =======================================================
+   LOAD CATEGORY IMAGES (Pinterest style)
+======================================================= */
+
 async function loadCategory(category) {
-  const containerId = `${category}Gallery`;
-  const container = document.getElementById(containerId);
-
-  console.log("📌 Container:", containerId, container);
-
+  const container = document.getElementById(`${category}Gallery`);
   if (!container) return;
 
   const jsonURL = `/data/${category}.json`;
-  console.log("📥 Fetch JSON:", jsonURL);
 
   try {
     const res = await fetch(jsonURL);
     const files = await res.json();
 
-    console.log("📁 JSON Files:", files);
-
     if (!Array.isArray(files)) return;
 
     const imageUrls = files.map(f => `/projects/${category}/${f}`);
 
-    // 🔥 PRELOAD ONLY FIRST 6 IMAGES
-    const firstBatch = imageUrls.slice(0, 6);
-    console.log("⏳ Preloading first 6:", firstBatch);
-
+    /* --- PRELOAD FIRST 10 --- */
+    const firstBatch = imageUrls.slice(0, 10);
     await Promise.all(firstBatch.map(preloadImage));
 
-    // Render first 6 instantly
     firstBatch.forEach(src => addImage(container, src));
 
-    // 🔥 Lazy-load the remaining ones using IntersectionObserver
-    const remaining = imageUrls.slice(6);
-
+    /* --- LAZY LOAD THE REST --- */
+    const remaining = imageUrls.slice(10);
     remaining.forEach(src => {
       const img = document.createElement("img");
-      img.dataset.src = src; // not loading yet
+      img.dataset.src = src;
       img.loading = "lazy";
       img.onclick = () => openFullscreen(src);
       container.appendChild(img);
@@ -125,21 +115,24 @@ async function loadCategory(category) {
 
 
 /* =======================================================
-   LAZY LOADING (Loads images only when visible)
+   LAZY LOADING (smooth Pinterest scroll)
 ======================================================= */
 
 function observeLazyImages() {
   const lazyImgs = document.querySelectorAll("img[data-src]");
 
-  const obs = new IntersectionObserver(entries => {
+  const obs = new IntersectionObserver((entries, observer) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const img = entry.target;
         img.src = img.dataset.src;
         img.removeAttribute("data-src");
-        obs.unobserve(img);
+        observer.unobserve(img);
       }
     });
+  }, {
+    rootMargin: "300px 0px",   // load before entering screen
+    threshold: 0.01
   });
 
   lazyImgs.forEach(img => obs.observe(img));
@@ -154,7 +147,7 @@ function observeLazyImages() {
 function addImage(container, src) {
   const img = document.createElement("img");
   img.src = src;
-  img.loading = "eager"; // safe because preloaded
+  img.loading = "eager";
   img.onclick = () => openFullscreen(src);
   container.appendChild(img);
 }
