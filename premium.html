@@ -7,6 +7,79 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/style.css" />
+
+  <!-- ★ PREMIUM-ONLY CSS (does not affect normal pages) -->
+  <style>
+    /* Premium title alignment */
+    .premium-block {
+      padding-left: 20px;
+      margin-top: 40px;
+    }
+
+    .premium-title {
+      margin-bottom: 12px;
+      font-size: 26px;
+      font-weight: 600;
+      color: #3d1f12;
+      font-family: "Playfair Display", serif;
+    }
+
+    /* Keep grid stable even if images are skipped */
+    #premium-kitchenGallery,
+    #premium-livingGallery,
+    #premium-bedroomGallery,
+    #premium-diningGallery,
+    #premium-bathroomGallery,
+    #premium-furnitureGallery {
+      column-count: 3;
+      column-gap: 20px;
+      padding: 10px 20px;
+    }
+
+    @media (max-width: 900px) {
+      #premium-kitchenGallery,
+      #premium-livingGallery,
+      #premium-bedroomGallery,
+      #premium-diningGallery,
+      #premium-bathroomGallery,
+      #premium-furnitureGallery {
+        column-count: 2;
+      }
+    }
+
+    @media (max-width: 600px) {
+      #premium-kitchenGallery,
+      #premium-livingGallery,
+      #premium-bedroomGallery,
+      #premium-diningGallery,
+      #premium-bathroomGallery,
+      #premium-furnitureGallery {
+        column-count: 1;
+      }
+    }
+
+    /* Premium images — blur-up + no space if broken */
+    .premium-block img {
+      width: 100%;
+      margin-bottom: 18px;
+      border-radius: 12px;
+      cursor: pointer;
+
+      opacity: 0;
+      filter: blur(25px);
+      transition: opacity 0.45s ease, filter 0.45s ease, transform 0.25s ease;
+      background: #eee;
+    }
+
+    .premium-block img.loaded {
+      opacity: 1;
+      filter: blur(0);
+    }
+
+    .premium-block img:hover {
+      transform: scale(1.02);
+    }
+  </style>
 </head>
 
 <body>
@@ -33,37 +106,34 @@
   <main class="container fade-section">
 
     <section class="premium-block">
-  <h2 class="premium-title">Premium — Highlight</h2>
-  <div id="premium-bathroomGallery" class="masonry"></div>
-  
-</section>
+      <h2 class="premium-title">Premium — Highlight</h2>
+      <div id="premium-bathroomGallery" class="masonry"></div>
+    </section>
 
-<section class="premium-block">
-  <h2 class="premium-title">Premium — Living</h2>
-  <div id="premium-livingGallery" class="masonry"></div>
-</section>
+    <section class="premium-block">
+      <h2 class="premium-title">Premium — Living</h2>
+      <div id="premium-livingGallery" class="masonry"></div>
+    </section>
 
-<section class="premium-block">
-  <h2 class="premium-title">Premium — Bedroom</h2>
-  <div id="premium-bedroomGallery" class="masonry"></div>
-</section>
+    <section class="premium-block">
+      <h2 class="premium-title">Premium — Bedroom</h2>
+      <div id="premium-bedroomGallery" class="masonry"></div>
+    </section>
 
+    <section class="premium-block">
+      <h2 class="premium-title">Premium — Kitchen</h2>
+      <div id="premium-kitchenGallery" class="masonry"></div>
+    </section>
 
-   <section class="premium-block">
-  <h2 class="premium-title">Premium — Kitchen</h2>
-  <div id="premium-kitchenGallery" class="masonry"></div>
-</section>
+    <section class="premium-block">
+      <h2 class="premium-title">Premium — Dining</h2>
+      <div id="premium-diningGallery" class="masonry"></div>
+    </section>
 
-<section class="premium-block">
-  <h2 class="premium-title">Premium — Dining</h2>
-  <div id="premium-diningGallery" class="masonry"></div>
-</section>
-
-
-<section class="premium-block">
-  <h2 class="premium-title">Premium — Furniture</h2>
-  <div id="premium-furnitureGallery" class="masonry"></div>
-</section>
+    <section class="premium-block">
+      <h2 class="premium-title">Premium — Furniture</h2>
+      <div id="premium-furnitureGallery" class="masonry"></div>
+    </section>
 
   </main>
 
